@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 
 const BASE = process.env.SMOKE_BASE_URL || "http://127.0.0.1:8080/";
-const OUT_DIR = "/workspace/screenshots/smoke";
+const OUT_DIR = process.env.SMOKE_OUT_DIR || "/workspace/screenshots/smoke";
 const TIMEOUT = Number(process.env.SMOKE_TIMEOUT_MS || 90_000);
 
 mkdirSync(OUT_DIR, { recursive: true });
