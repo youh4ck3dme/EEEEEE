@@ -48,8 +48,6 @@ jobs:
     # Non-blocking until the pre-existing failure in smoke.url_scan is fixed
     # (the "Vytvoriť blueprint" CTA stays disabled after filling the URL, on main too).
     continue-on-error: true
-    env:
-      SMOKE_OUT_DIR: ${{ runner.temp }}/smoke
     steps:
       - uses: actions/checkout@v4
 
@@ -79,6 +77,8 @@ jobs:
           exit 1
 
       - name: Smoke suite
+        env:
+          SMOKE_OUT_DIR: ${{ runner.temp }}/smoke
         run: npm run test:smoke
 
       - name: Upload screenshots and dev log
