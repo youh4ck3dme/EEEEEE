@@ -45,9 +45,6 @@ jobs:
     name: browser smoke (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Non-blocking until the pre-existing failure in smoke.url_scan is fixed
-    # (the "Vytvoriť blueprint" CTA stays disabled after filling the URL, on main too).
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
