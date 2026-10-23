@@ -60,7 +60,10 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        # No --with-deps: it runs apt-get, which hung on the runner. ubuntu-latest
+        # already ships the shared libraries Chromium needs.
+        timeout-minutes: 8
+        run: npx playwright install chromium
 
       - name: Start app (dev server on :8080)
         run: |
