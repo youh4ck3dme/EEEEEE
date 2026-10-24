@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 
 const BASE = process.env.SMOKE_BASE_URL || "http://127.0.0.1:8080/";
-const OUT_DIR = "/workspace/screenshots/smoke";
+const OUT_DIR = process.env.SMOKE_OUT_DIR || "/workspace/screenshots/smoke";
 const TIMEOUT = Number(process.env.SMOKE_TIMEOUT_MS || 90_000);
 
 mkdirSync(OUT_DIR, { recursive: true });
@@ -60,6 +60,18 @@ async function toggleOff(page, testId) {
   }
 }
 
+/** Wait until React has hydrated the scan form; typing before that leaves the CTA disabled. */
+async function waitForHydration(page) {
+  await page.waitForFunction(
+    () => {
+      const input = document.querySelector('input[placeholder="https://moja-appka.com"]');
+      return Boolean(input && Object.keys(input).some((k) => k.startsWith("__reactProps")));
+    },
+    null,
+    { timeout: TIMEOUT },
+  );
+}
+
 async function configureFastScan(page) {
   await toggleOff(page, "opt-render");
   await toggleOff(page, "opt-wayback");
@@ -109,6 +121,7 @@ async function main() {
     await withPage(browser, async (page, errs) => {
       const t = Date.now();
       await page.goto(BASE, { waitUntil: "networkidle", timeout: TIMEOUT });
+      await waitForHydration(page);
       await configureFastScan(page);
       await page.getByPlaceholder("https://moja-appka.com").fill("https://example.com");
       await page.getByRole("button", { name: /Vytvoriť blueprint/i }).click();
@@ -127,7 +140,8 @@ async function main() {
     await withPage(browser, async (page, errs) => {
       const t = Date.now();
       await page.goto(BASE, { waitUntil: "networkidle", timeout: TIMEOUT });
-      await page.getByRole("tab", { name: /Vložiť HTML/i }).click();
+      await waitForHydration(page);
+      await page.getByRole("button", { name: /Vložiť HTML/i }).click();
       await page.getByPlaceholder("https://povodna-domena.sk").fill("https://offline.example");
       const html = `<!DOCTYPE html><html lang="sk"><head><title>Offline Restore</title>
         <meta name="description" content="paste test"/><style>:root{--c:#111}</style>
@@ -137,13 +151,17 @@ async function main() {
         </body></html>`;
       await page.locator("textarea").fill(html);
       await page.getByRole("button", { name: /Vytvoriť blueprint/i }).click();
-      await page.waitForSelector("text=Offline Restore", { timeout: TIMEOUT });
+      // innerText skips the <textarea> source, so this only matches the rendered blueprint.
+      await page.waitForFunction(() => document.body.innerText.includes("Offline Restore"), null, { timeout: TIMEOUT });
       const body = await page.locator("body").innerText();
       await page.screenshot({ path: `${OUT_DIR}/03-html-scan.png`, fullPage: true });
+      const htmlOk = body.includes("Offline Restore") && errs.pageErrors.length === 0;
       record(
         "smoke.html_scan",
-        body.includes("Offline Restore") && errs.pageErrors.length === 0,
-        "paste ok",
+        htmlOk,
+        htmlOk
+          ? "paste ok"
+          : `includesTitle=${body.includes("Offline Restore")} pageErrors=${errs.pageErrors.length} first=${errs.pageErrors[0] ?? "-"}`,
         t,
       );
     });
@@ -151,6 +169,7 @@ async function main() {
     await withPage(browser, async (page, errs) => {
       const t = Date.now();
       await page.goto(BASE, { waitUntil: "networkidle", timeout: TIMEOUT });
+      await waitForHydration(page);
       await configureFastScan(page);
       await page.getByPlaceholder("https://moja-appka.com").fill("https://example.com");
       await page.getByRole("button", { name: /Vytvoriť blueprint/i }).click();
@@ -179,6 +198,7 @@ async function main() {
     await withPage(browser, async (page, errs) => {
       const t = Date.now();
       await page.goto(BASE, { waitUntil: "networkidle", timeout: TIMEOUT });
+      await waitForHydration(page);
       await configureFastScan(page);
       await page.getByPlaceholder("https://moja-appka.com").fill("https://example.com");
       await page.getByRole("button", { name: /Vytvoriť blueprint/i }).click();
@@ -199,6 +219,7 @@ async function main() {
     await withPage(browser, async (page, errs) => {
       const t = Date.now();
       await page.goto(BASE, { waitUntil: "networkidle", timeout: TIMEOUT });
+      await waitForHydration(page);
       await configureFastScan(page);
       await page.getByPlaceholder("https://moja-appka.com").fill("https://example.com");
       await page.getByRole("button", { name: /Vytvoriť blueprint/i }).click();

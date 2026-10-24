@@ -6,8 +6,10 @@ import {
   Import,
   RefreshCw,
   ScanLine,
+  Sparkles,
   X,
 } from "lucide-react";
+import { PwaStudio } from "@/components/pwa/pwa-studio";
 import { ScanForm } from "@/components/blueprint/scan-form";
 import { BlueprintView } from "@/components/blueprint/blueprint-view";
 import { HistoryList } from "@/components/blueprint/history-list";
@@ -29,12 +31,14 @@ export const Route = createFileRoute("/")({
 });
 
 type Overlay = "none" | "history" | "compare";
+type Mode = "scan" | "pwa";
 
 function HomePage() {
   const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
   const [history, setHistory] = useState<BlueprintSummary[]>([]);
   const [busy, setBusy] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>("none");
+  const [mode, setMode] = useState<Mode>("scan");
 
   const refreshHistory = useCallback(() => {
     setHistory(listLocalBlueprints());
@@ -94,8 +98,25 @@ function HomePage() {
 
   return (
     <div className="relative min-h-dvh bg-bg">
+      {/* SCREEN · PWA & ASSET STUDIO */}
+      {mode === "pwa" && (
+        <div className="relative min-h-dvh">
+          <div className="absolute top-3 right-3 z-20">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setMode("scan")}
+            >
+              Späť na Scanner
+            </Button>
+          </div>
+          <PwaStudio />
+        </div>
+      )}
+
       {/* SCREEN 1 · SCAN */}
-      {!showResult && (
+      {mode === "scan" && !showResult && (
         <section className="relative min-h-dvh w-full flex flex-col items-center justify-center px-4 py-10 overflow-hidden">
           <div aria-hidden className="ambient-glow" />
 
@@ -153,13 +174,22 @@ function HomePage() {
                 <GitCompareArrows className="size-3.5 text-fg-subtle" />
                 Porovnať blueprinty
               </button>
+              <span className="h-3 w-px bg-border" aria-hidden />
+              <button
+                type="button"
+                onClick={() => setMode("pwa")}
+                className="hover:text-fg flex items-center gap-1.5"
+              >
+                <Sparkles className="size-3.5 text-fg-subtle" />
+                PWA Studio
+              </button>
             </div>
           </div>
         </section>
       )}
 
       {/* SCREEN 2 · RESULT */}
-      {showResult && blueprint && (
+      {mode === "scan" && showResult && blueprint && (
         <section className="h-dvh w-full flex flex-col overflow-hidden bg-bg">
           <header className="h-14 shrink-0 border-b border-border px-3 sm:px-4 flex items-center justify-between gap-3 bg-bg">
             <div className="flex items-center gap-2.5 min-w-0">
