@@ -11,10 +11,18 @@ Versioning: project app version is tracked via Blueprint schema (`1.0.0`–`1.2.
 
 - Professional documentation set under `docs/` (Architecture, Development, Testing, Security, Deployment, Runbook, API)
 - `CONTRIBUTING.md`, expanded root `README.md`, GitHub issue/PR templates
+- PWA & Asset Studio: GitHub repo ingest, client-side icon/favicon/manifest engine, live preview, ZIP export
+- CI browser smoke job (Playwright Chromium), blocking
 
 ### Changed
 
 - Root README rewritten for open-source / DevOps clarity (English)
+- README re-verified against the code: correct repo URL, PWA Studio, Neon/PGlite storage, Better Auth, env vars, server API, test counts, known gaps
+
+### Removed
+
+- Unrelated game/media agent skills from `.grok/skills/` (building-games, controls, game-*, generate2dmap, generate2dsprite, video2dsprite, imagine, threejs)
+- Stray local-machine git section from README
 
 ## [1.2.x] — 2026-08
 
